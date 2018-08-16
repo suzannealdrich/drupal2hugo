@@ -142,6 +142,7 @@ func copyOutNodeType(rows []interface{}) []*NodeType {
 type JoinedNodeDataBody struct {
 	Nid       int32
 	Vid       int32
+	UserName  string
 	Type      string
 	Title     string
 	Published bool // column=status
@@ -160,12 +161,13 @@ type JoinedNodeDataBody struct {
 }
 
 func (db Database) JoinedNodeFields(offset, count int) []*JoinedNodeDataBody {
-	sql := `select
-	    Nid, Vid, Type, Title, status as Published, Created, Changed, Comment,
-	    Promote, Sticky, Bundle, Deleted, Revision_Id as RevisionId,
-            Delta, Body_Value as BodyValue, Body_Summary as BodySummary, Body_Format as BodyFormat
-            from %snode inner join %sfield_data_body on %snode.nid = %sfield_data_body.entity_id limit %d,%d`
-        s2 := fmt.Sprintf(sql, db.Prefix, db.Prefix, db.Prefix, db.Prefix, offset, count)
+	sql := `SELECT
+		n.Nid, n.Vid, u.Name AS UserName, n.Type, n.Title, n.status AS Published, n.Created, n.Changed, n.Comment,
+		n.Promote, n.Sticky, b.Bundle, b.Deleted, b.Revision_Id AS RevisionId,
+		b.Delta, b.Body_Value AS BodyValue, b.Body_Summary AS BodySummary, b.Body_Format AS BodyFormat
+		FROM %snode n INNER JOIN %sfield_data_body b ON n.nid = b.entity_id
+		INNER JOIN %susers u ON n.uid = u.uid WHERE n.status = 1 LIMIT %d,%d`
+	s2 := fmt.Sprintf(sql, db.Prefix, db.Prefix, db.Prefix, offset, count)
 	list, err := db.DbMap.Select(JoinedNodeDataBody{}, s2)
 	util.CheckErrFatal(err, s2)
 	return copyOutJoinedNodeDataBody(list)

@@ -198,6 +198,7 @@ func writeFrontMatter(w io.Writer, node *model.JoinedNodeDataBody, alias string,
 	fmt.Fprintln(w, "---")
 	fmt.Fprintf(w, "title:       \"%s\"\n", node.Title)
 	//fmt.Fprintf(w, "description: \"%s\"\n", node.BodySummary)
+	fmt.Fprintf(w, "author:      \"%s\"\n", node.UserName)
 	fmt.Fprintf(w, "type:        %s\n", node.Type)
 	fmt.Fprintf(w, "date:        %s\n", created)
 	if changed != created {

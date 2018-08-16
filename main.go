@@ -232,7 +232,6 @@ func writeContent(w io.Writer, node *model.JoinedNodeDataBody, emvideos []model.
 	if strings.HasPrefix(body, node.BodySummary) {
 		body = body[len(node.BodySummary):]
 		fmt.Fprintln(w, node.BodySummary)
-		fmt.Fprintln(w, "<!--more-->")
 	}
 	for _, emvideo := range emvideos {
 		fmt.Fprintf(w, "{{< %s %s >}}", emvideo.Provider, emvideo.VideoId)

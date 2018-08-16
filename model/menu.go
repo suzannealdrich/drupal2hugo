@@ -1,7 +1,7 @@
 package model
 
 import (
-	"github.com/fale/drupal2hugo/util"
+	"github.com/ColinFinck/drupal2hugo/util"
 	"fmt"
 	"github.com/go-sql-driver/mysql"
 	"os"

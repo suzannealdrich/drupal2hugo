@@ -166,7 +166,7 @@ func (db Database) JoinedNodeFields(offset, count int) []*JoinedNodeDataBody {
 		n.Promote, n.Sticky, b.Bundle, b.Deleted, b.Revision_Id AS RevisionId,
 		b.Delta, b.Body_Value AS BodyValue, b.Body_Summary AS BodySummary, b.Body_Format AS BodyFormat
 		FROM %snode n INNER JOIN %sfield_data_body b ON n.nid = b.entity_id
-		INNER JOIN %susers u ON n.uid = u.uid WHERE n.status = 1 AND n.language IN ('en', 'und') LIMIT %d,%d`
+		INNER JOIN %susers u ON n.uid = u.uid WHERE n.status = 1 AND n.language IN ('en', 'und') AND b.body_summary IS NOT NULL LIMIT %d,%d`
 	s2 := fmt.Sprintf(sql, db.Prefix, db.Prefix, db.Prefix, offset, count)
 	list, err := db.DbMap.Select(JoinedNodeDataBody{}, s2)
 	util.CheckErrFatal(err, s2)

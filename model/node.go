@@ -25,9 +25,10 @@
 package model
 
 import (
-	"github.com/ColinFinck/drupal2hugo/util"
 	"fmt"
+
 	"github.com/rickb777/gorp"
+	"github.com/suzannealdrich/drupal2hugo/util"
 )
 
 //type NodeRevision struct {
@@ -140,17 +141,17 @@ func copyOutNodeType(rows []interface{}) []*NodeType {
 }
 
 type JoinedNodeDataBody struct {
-	Nid       int32
-	Vid       int32
-	UserName  string
-	Type      string
-	Title     string
-	Published bool // column=status
-	Created   int64
-	Changed   int64
-	Comment   int8
-	Promote   bool
-	Sticky    bool
+	Nid         int32
+	Vid         int32
+	UserName    string
+	Type        string
+	Title       string
+	Published   bool // column=status
+	Created     int64
+	Changed     int64
+	Comment     int8
+	Promote     bool
+	Sticky      bool
 	Bundle      string
 	Deleted     bool
 	RevisionId  int32

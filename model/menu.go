@@ -1,10 +1,11 @@
 package model
 
 import (
-	"github.com/ColinFinck/drupal2hugo/util"
 	"fmt"
-	"github.com/go-sql-driver/mysql"
 	"os"
+
+	"github.com/go-sql-driver/mysql"
+	"github.com/suzannealdrich/drupal2hugo/util"
 )
 
 const (

@@ -1,8 +1,9 @@
 package model
 
 import (
-	"github.com/ColinFinck/drupal2hugo/util"
 	"fmt"
+
+	"github.com/suzannealdrich/drupal2hugo/util"
 	php "github.com/wulijun/go-php-serialize/phpserialize"
 )
 

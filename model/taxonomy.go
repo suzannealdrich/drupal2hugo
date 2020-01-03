@@ -1,8 +1,9 @@
 package model
 
 import (
-	"github.com/ColinFinck/drupal2hugo/util"
 	"fmt"
+
+	"github.com/suzannealdrich/drupal2hugo/util"
 )
 
 type TaxonomyIndex struct {

@@ -26,11 +26,12 @@ package model
 
 import (
 	"database/sql"
-	"github.com/ColinFinck/drupal2hugo/util"
 	"errors"
-	"github.com/rickb777/gorp"
 	"log"
 	"os"
+
+	"github.com/rickb777/gorp"
+	"github.com/suzannealdrich/drupal2hugo/util"
 )
 
 // see https://github.com/go-sql-driver/mysql#readme

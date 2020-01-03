@@ -26,26 +26,26 @@ package main
 
 import (
 	"bufio"
-	model "github.com/ColinFinck/drupal2hugo/model"
-	util "github.com/ColinFinck/drupal2hugo/util"
 	"flag"
 	"fmt"
-	_ "github.com/go-sql-driver/mysql"
 	"io"
 	"os"
 	"path"
 	"strings"
 	"time"
+
+	_ "github.com/go-sql-driver/mysql"
+	model "github.com/suzannealdrich/drupal2hugo/model"
+	util "github.com/suzannealdrich/drupal2hugo/util"
 )
 
 var dbName = flag.String("db", "", "Drupal database name - required")
 var driver = flag.String("driver", "mysql", "SQL driver")
-var prefix = flag.String("prefix", "drp_", "Drupal table prefix")
+var prefix = flag.String("prefix", "", "Drupal table prefix")
 var user = flag.String("user", "", "Drupal user (defaults to be the same as the Drupal database name)")
 var pass = flag.String("pass", "", "Drupal password (you will be prompted for the password if this is absent)")
 var host = flag.String("host", "localhost", "Mysql host")
 var port = flag.String("port", "3306", "Mysql server port")
-var emvideoField = flag.String("emvideoField", "", "name of CCK field that holds emvideo data.")
 
 //var dir = flag.String("dir", "", "Run in directory")
 //var force = flag.Bool("f", false, "Force overwriting existing files")
@@ -85,10 +85,6 @@ func main() {
 
 	// username:password@protocol(address)/dbname?param=value
 	db := model.Connect(*driver, *user+":"+*pass+"@tcp("+*host+":"+*port+")/"+*dbName, *prefix, *verbose)
-	cckFieldTypes, err := db.CCKFields()
-	if err != nil && *emvideoField != "" {
-		util.Fatal("Unable to retrieve CCK Field metadata: %s", err.Error())
-	}
 
 	allBookPagesAsMap := make(map[int32]*model.BookPage) //db.AllBookPagesAsMap()
 
@@ -113,21 +109,6 @@ func main() {
 			alias := db.GetUrlAlias(node.Nid)
 			terms := db.JoinedTaxonomyTerms(node.Nid)
 			menus := db.JoinedMenusForPath(fmt.Sprintf("node/%d", node.Nid))
-			emvideos := make([]model.Emvideo, 0, 10)
-			if *emvideoField != "" {
-				cckData, err := db.CCKDataForNode(node, cckFieldTypes[node.Type])
-				if err != nil {
-					util.Fatal("Unable to get CCK field data for node: %s", err.Error())
-				}
-				for _, cckFieldType := range cckFieldTypes[node.Type] {
-					if cckFieldType.Name == *emvideoField {
-						video, err := model.EmvideoForNodeField(cckFieldType, cckData)
-						if err == nil {
-							emvideos = append(emvideos, *video)
-						}
-					}
-				}
-			}
 			//			hasMenuOrBook := false
 			fmt.Printf("node/%d %s %s\n", node.Nid, alias, node.Title)
 			if bookPage, exists := allBookPagesAsMap[node.Nid]; exists {
@@ -144,7 +125,7 @@ func main() {
 			//			if !hasMenuOrBook {
 			//				fmt.Printf("  --\n")
 			//			}
-			processNode(node, alias, terms, menus, emvideos)
+			processNode(node, alias, terms, menus)
 		}
 		offset += len(nodes)
 		nodes = db.JoinedNodeFields(offset, 10)
@@ -165,7 +146,7 @@ func processVocabs(db model.Database) {
 	}
 }
 
-func processNode(node *model.JoinedNodeDataBody, alias string, terms []*model.JoinedTaxonomyTerm, menus []*model.JoinedMenu, emvideos []model.Emvideo) {
+func processNode(node *model.JoinedNodeDataBody, alias string, terms []*model.JoinedTaxonomyTerm, menus []*model.JoinedMenu) {
 	fileName := fmt.Sprintf("content/%s.md", alias)
 	dir := path.Dir(fileName)
 	if *verbose {
@@ -178,16 +159,16 @@ func processNode(node *model.JoinedNodeDataBody, alias string, terms []*model.Jo
 	util.CheckErrFatal(err, "mkdir", dir)
 
 	tags := flattenTaxonomies(terms)
-	writeFile(fileName, node, alias, tags, menus, emvideos)
+	writeFile(fileName, node, alias, tags, menus)
 }
 
-func writeFile(fileName string, node *model.JoinedNodeDataBody, alias string, tags []string, menus []*model.JoinedMenu, emvideos []model.Emvideo) {
+func writeFile(fileName string, node *model.JoinedNodeDataBody, alias string, tags []string, menus []*model.JoinedMenu) {
 	file, err := os.Create(fileName)
 	util.CheckErrFatal(err, "create", fileName)
 
 	w := bufio.NewWriter(file)
 	writeFrontMatter(w, node, alias, tags, menus)
-	writeContent(w, node, emvideos)
+	writeContent(w, node)
 	w.Flush()
 	file.Close()
 }
@@ -219,7 +200,7 @@ func writeFrontMatter(w io.Writer, node *model.JoinedNodeDataBody, alias string,
 	}
 }
 
-func writeContent(w io.Writer, node *model.JoinedNodeDataBody, emvideos []model.Emvideo) {
+func writeContent(w io.Writer, node *model.JoinedNodeDataBody) {
 	if node.BodySummary != "" {
 		fmt.Fprintf(w, "\n# Summary:\n")
 		for _, line := range strings.Split(node.BodySummary, "\n") {
@@ -232,9 +213,6 @@ func writeContent(w io.Writer, node *model.JoinedNodeDataBody, emvideos []model.
 	if strings.HasPrefix(body, node.BodySummary) {
 		body = body[len(node.BodySummary):]
 		fmt.Fprintln(w, node.BodySummary)
-	}
-	for _, emvideo := range emvideos {
-		fmt.Fprintf(w, "{{< %s %s >}}", emvideo.Provider, emvideo.VideoId)
 	}
 	fmt.Fprintln(w, body)
 }
